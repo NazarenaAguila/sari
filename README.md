@@ -1,2 +1,0 @@
-# sari
-Proyecto de mecatrónica

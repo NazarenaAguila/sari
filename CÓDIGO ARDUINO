@@ -1,0 +1,109 @@
+// Incluyendo la librería del servo:
+#include <Servo.h>
+
+// Definición de pines:
+int PIN_BOTON = A0; // Pin del botón
+int PIN_SERVO_PUAS = 2; // Pin del servomotor 1 (PÚAS)
+int PIN_SERVO_COLA = 13; // Pin del servomotor 2 (COLA)
+int PIN_LED_1 = 4; // Pin del led 1
+int PIN_LED_2 = 12; // Pin del led 2 
+
+// Definición de variables:
+int ANGULO_INICIAL_PUAS = 0; // Ángulo inicial del servomotor 1 (PÚAS)
+int ANGULO_FINAL_PUAS = 90; // Ángulo final del servomotor 1 (PÚAS)
+int ANGULO_REPOSO_COLA = 90; // Ángulo de reposo del servomotor 2 (COLA)
+int ANGULO_INICIAL_COLA = 45; // Ángulo inicial del servomotor 2 (COLA)
+int ANGULO_FINAL_COLA = 135; // Ángulo final del servomotor 2 (COLA)
+int TIEMPO_ESPERA_PUAS = 1500; // Tiempo miliseg de espera para moverse
+int REPETICIONES_PUAS = 3; // Numero de repeticiones (PÚAS)
+int TIEMPO_ESPERA_COLA = TIEMPO_ESPERA_PUAS / 2; // tiempo para mover cola
+int ESTADO_ANTERIOR = 0; // Guarda el último estado del botón
+int ESTADO_ACTUAL; // Guarda el nuevo estado del botón 
+
+  
+// Creación de servomotores:
+Servo ServoPuas; // Servomotor asociado a las púas
+Servo ServoCola; // Servomotor asociado a la cola
+
+void setup() 
+{
+  // Inicialización de pines:
+  pinMode(PIN_BOTON, INPUT); //botón como entrada
+  pinMode(PIN_LED_1, OUTPUT); //Led como salida
+  pinMode(PIN_LED_2, OUTPUT); //Led como salida
+  // Adjuntando servomotores a los pines correspondientes:
+  ServoPuas.attach(PIN_SERVO_PUAS);
+  ServoCola.attach(PIN_SERVO_COLA);
+  // Calibrando servomotores:
+  ServoPuas.write(ANGULO_INICIAL_PUAS); // Angulo de reposo de púas (Angulo inicial)
+  ServoCola.write(ANGULO_REPOSO_COLA); // Angulo de reposo de cola
+}
+
+void loop() 
+{
+  // Se lee el estado actual del botón
+  ESTADO_ACTUAL = digitalRead(PIN_BOTON);
+  
+  // No se ha presionado el botón:
+  if (ESTADO_ACTUAL == 0 && ESTADO_ANTERIOR == 0){}
+  
+  // Se presiona el botón, comienza movimiento: 
+  if (ESTADO_ACTUAL == 1 && ESTADO_ANTERIOR == 0)
+  {
+    MOVIMIENTO();
+  }
+  
+  // Se mantiene presionado el botón:
+  if (ESTADO_ACTUAL == 1 && ESTADO_ANTERIOR == 1)
+  {
+    MOVIMIENTO();
+  }
+  
+  // El botón se liberó, se realiza un ultimo movimiento: 
+  if (ESTADO_ACTUAL == 0 && ESTADO_ANTERIOR == 1)
+  {
+    MOVIMIENTO();
+   }
+  
+  // Se guarda el ultimo estado leído del botón
+  ESTADO_ANTERIOR = ESTADO_ACTUAL; // Guarda el último estado del botón
+}
+
+
+// Función para accionar el movimiento de los mecanismos
+void MOVIMIENTO()
+{
+  for (int i = 0; i < REPETICIONES_PUAS; i++) 
+  {
+    ServoPuas.write(ANGULO_FINAL_PUAS); // Mover PúAS a la posición final
+    ENCENDER_LEDS();
+    ServoCola.write(ANGULO_FINAL_COLA); // Mover COLA a la posición final
+    delay(TIEMPO_ESPERA_COLA); // Esperar un tiempo en la posición final
+    
+    ServoCola.write(ANGULO_INICIAL_COLA); // Mover COLA a la posición inicial
+    delay(TIEMPO_ESPERA_COLA); // Esperar un tiempo en la posición inicial
+    
+    ServoPuas.write(ANGULO_INICIAL_PUAS); // Mover PúAS a la posición inicial
+    APAGAR_LEDS();
+    ServoCola.write(ANGULO_FINAL_COLA); // Mover COLA a la posición final
+    delay(TIEMPO_ESPERA_COLA); // Esperar un tiempo en la posición final
+    
+    ServoCola.write(ANGULO_INICIAL_COLA); // Mover COLA a la posición inicial
+    delay(TIEMPO_ESPERA_COLA); // Esperar un tiempo en la posición inicial
+  }
+  ServoCola.write(ANGULO_REPOSO_COLA); // Mover COLA a la posición de reposo
+}
+
+// Función para encender ambos LEDs:
+void ENCENDER_LEDS() 
+{
+  digitalWrite(PIN_LED_1, HIGH); // Se enciende el primer LED
+  digitalWrite(PIN_LED_2, HIGH); // Se enciende el segundo LED
+}
+
+// Función para apagar ambos LEDs:
+void APAGAR_LEDS() 
+{
+  digitalWrite(PIN_LED_1, LOW); // Se apaga el primer LED
+  digitalWrite(PIN_LED_2, LOW); // Se apaga el segundo LED
+}
